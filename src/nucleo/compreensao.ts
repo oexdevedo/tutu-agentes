@@ -17,7 +17,7 @@ const INTERPRETAR: Tool = {
         items: {
           type: "object",
           properties: {
-            tipo: { type: "string", enum: ["registrar", "consultar_saldo", "consultar_mes", "agradecimento", "conversa", "outra"] },
+            tipo: { type: "string", enum: ["registrar", "consultar_saldo", "consultar_cartoes", "consultar_mes", "agradecimento", "conversa", "outra"] },
             natureza: { type: "string", enum: ["despesa", "receita"] },
             valor: { type: "number", description: "em reais, ex.: 15.82" },
             descricao: { type: "string" },
@@ -59,6 +59,7 @@ Devolva SÓ o que a pessoa quer NESTA mensagem, chamando a ferramenta "interpret
   • conta: copie a palavra EXATA da pessoa ("pj", "empresa", "Sweet Cows"). NUNCA escolha nem corrija o nome da conta — o sistema resolve e pergunta se houver dúvida.
   • Conta FIXA/recorrente ("todo mês", "assinatura", "recorrente", "pelos próximos meses", "vence todo dia 10") NÃO é registrar: é outra (cadastro de conta fixa).
 - consultar_saldo: saldo, quanto posso gastar, quanto gastei/recebi hoje, e perguntas sobre o limite do dia ("por que tenho X pra gastar hoje?").
+- consultar_cartoes: cartões de crédito — limite, quanto usou, fatura, vencimento, "estourei o cartão?". (PDF de fatura é outra coisa: importar.)
 - consultar_mes: listar receitas/despesas/fixas de um mês (mes=AAAA-MM se citou).
 - agradecimento: só 👍/obrigado/valeu, sem pedido.
 - conversa: desabafo, dúvida geral, papo — nada a executar.
@@ -96,6 +97,7 @@ export function validar(b: Partial<Compreensao>): Compreensao {
         intencoes.push({ ...(i as object), tipo: "registrar", natureza: i.natureza, valor, descricao: String(i.descricao || "Lançamento").slice(0, 200) } as Intencao);
       } else intencoes.push({ tipo: "outra", descricao: `registro incompleto: ${JSON.stringify(i).slice(0, 150)}` });
     } else if (i.tipo === "consultar_saldo") intencoes.push({ tipo: "consultar_saldo", conta: i.conta ? String(i.conta) : undefined });
+    else if (i.tipo === "consultar_cartoes") intencoes.push({ tipo: "consultar_cartoes", conta: i.conta ? String(i.conta) : undefined });
     else if (i.tipo === "consultar_mes") intencoes.push({ tipo: "consultar_mes", o_que: (["receitas", "despesas", "fixas"].includes(String(i.o_que)) ? i.o_que : "despesas") as "receitas", mes: i.mes ? String(i.mes) : undefined, conta: i.conta ? String(i.conta) : undefined });
     else if (i.tipo === "agradecimento") intencoes.push({ tipo: "agradecimento" });
     else if (i.tipo === "conversa") intencoes.push({ tipo: "conversa", assunto: i.assunto ? String(i.assunto) : undefined });

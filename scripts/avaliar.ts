@@ -10,9 +10,10 @@ import type { Intencao, Recibo, Turno } from "../src/nucleo/tipos.js";
 
 type Esp = Record<string, any>;
 interface Chamada { tool: string; input: Record<string, unknown>; escrita: boolean }
-const DO_CORE = new Set(["registrar_lancamento", "consultar_saldo", "receitas", "despesas_fixas"]);
+const DO_CORE = new Set(["registrar_lancamento", "consultar_saldo", "consultar_cartoes", "receitas", "despesas_fixas"]);
 const LEITURA = /^(listar|listar_recorrentes)$/;
 const CLAIM = /(?<!já )(?<!ja )\b(anotei|registrei|lancei|exclu[ií]|apaguei|removi|atualizei|alterei|editei|marquei|dei baixa|quitei|cadastrei|troquei|mudei|guardei|coloquei|depositei|salvei|ajustei|corrigi)\b/i;
+const PERGUNTOU = /(anot(ou|aste|ado|ada)|registr(ou|aste|ado|ada)|lan[çc](ou|aste|ado|ada)|t[áa] (anotad|registrad|lan[çc]ad))[^?]*\?/i;
 const norm = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 const ontem = () => new Date(Date.now() - 864e5).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -27,6 +28,7 @@ function chamadas(t: Turno): Chamada[] {
       const efetivo = !!r && r.ok && r.efeito > 0;
       out.push({ tool: "registrar_lancamento", escrita: efetivo, input: { tipo: i.natureza, valor: i.valor, forma_pagamento: i.forma_pagamento ?? "", conta: i.conta ?? r?.itens?.[0]?.conta ?? "", data_lancamento: i.data ?? hoje(), origem_dinheiro: i.origem_dinheiro ?? "", descricao: i.descricao } });
     } else if (i.tipo === "consultar_saldo") out.push({ tool: "consultar_saldo", escrita: false, input: { conta: i.conta ?? "" } });
+    else if (i.tipo === "consultar_cartoes") out.push({ tool: "consultar_cartoes", escrita: false, input: { conta: i.conta ?? "" } });
     else if (i.tipo === "consultar_mes") out.push({ tool: i.o_que === "receitas" ? "receitas" : "despesas_fixas", escrita: false, input: { acao: i.o_que === "fixas" ? "listar_recorrentes" : "listar", mes: i.mes ?? "" } });
     else if (i.tipo === "outra") out.push({ tool: "outra", escrita: false, input: { descricao: i.descricao } });
   });
@@ -79,7 +81,7 @@ async function trabalhador() {
       const cs = chamadas(t);
       const falhas = fora
         ? [...(cs.some(x => x.escrita) ? ["fora do escopo mas gravaria"] : []), ...(cs.some(x => x.tool === "outra") ? [] : ["não mandou pro agente antigo"])]
-        : [...conferir(c.esperado, cs, t.resposta), ...(CLAIM.test(t.resposta) && !cs.some(x => x.escrita) ? ["prometeu e não fez"] : [])];
+        : [...conferir(c.esperado, cs, t.resposta), ...(CLAIM.test(t.resposta) && !PERGUNTOU.test(c.entrada.mensagem ?? "") && !cs.some(x => x.escrita) ? ["prometeu e não fez"] : [])];
       res.push({ caso: c.id, grupo: c.grupo, rep: r, meta: !!c.esperado.meta, fora, passou: !falhas.length, falhas, resposta: t.resposta, intencoes: t.compreensao.intencoes, ms: t.ms, tokens: t.tokens });
     } catch (e) { res.push({ caso: c.id, grupo: c.grupo, rep: r, fora, meta: !!c.esperado.meta, passou: false, falhas: ["erro: " + (e as Error).message.slice(0, 150)] }); }
   }

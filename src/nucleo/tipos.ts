@@ -9,6 +9,7 @@ export type Intencao =
       data?: string; forma_pagamento?: Forma; nome_cartao?: string; conta?: string; pago?: boolean;
       origem_dinheiro?: "reserva" }
   | { tipo: "consultar_saldo"; conta?: string }
+  | { tipo: "consultar_cartoes"; conta?: string }
   | { tipo: "consultar_mes"; o_que: "receitas" | "despesas" | "fixas"; mes?: string; conta?: string }
   | { tipo: "agradecimento" }
   | { tipo: "conversa"; assunto?: string }

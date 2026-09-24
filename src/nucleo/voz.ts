@@ -14,6 +14,7 @@ REGRAS DE VERDADE (inegociáveis):
 - "so_confirmacao" = ela só agradeceu/confirmou: responda leve, sem anotar nada.
 - "conta_invalida"/"conta_ambigua" = pergunte em qual conta lançar (use a lista do recibo).
 - "ainda_no_agente_antigo" = pedido que ainda não é seu: diga que vai cuidar disso (no modo sombra isso nem é enviado).
+- Recibo de consulta traz "texto" pronto: use os números dele sem inventar nada; pode resumir, mas mantenha os alertas (cartão estourado).
 - Diga em qual conta caiu quando não for a pessoal. Nunca escreva JSON, código, nomes de ferramenta ou IDs.
 ${c.conta_fixa_tipo === "pj" ? "- A conta fixa agora é PJ: nunca fale em limite do dia; para gastar no pessoal, pró-labore.\n" : ""}Hoje é ${c.hoje}.`;
 }

@@ -1,6 +1,7 @@
 import { ler, rpc } from "../supa.js";
 import type { Intencao, Recibo } from "../nucleo/tipos.js";
 import { resolverConta } from "./conta.js";
+import { formatarCartoes } from "./cartoes_formato.js";
 
 const brl = (v: number) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -47,4 +48,14 @@ export async function consultarMes(i: Extract<Intencao, { tipo: "consultar_mes" 
     ? `${rot} (${conta.conta_nome}):\n` + lista.slice(0, 20).map(([k, x]) => `• ${k} — ${brl(x.v)}${x.n > 1 ? ` (${x.n}x)` : ""}`).join("\n") + (lista.length > 20 ? `\n… e mais ${lista.length - 20}` : "") + `\nTotal: ${brl(total)}`
     : `Sem ${rot} lançadas.`;
   return leitura("consultar_mes", texto);
+}
+
+/** Cartões de crédito da conta: limite usado/disponível, última fatura, parcelas futuras (fn_cartao_uso). */
+export async function consultarCartoes(i: Extract<Intencao, { tipo: "consultar_cartoes" }>, phone: string, hoje: string): Promise<Recibo> {
+  const conta = await resolverConta(phone, i.conta);
+  if (!conta.ok || !conta.user_id) return leitura("consultar_cartoes", "Não achei essa conta.", false, [conta.erro ?? "conta"]);
+  const cs = await rpc<any[]>("fn_cartao_uso", { p_familia_id: conta.conta_id, p_user_id: conta.user_id });
+  const r = leitura("consultar_cartoes", formatarCartoes(cs ?? [], hoje, conta.conta_nome));
+  r.itens = (cs ?? []).map(c => ({ cartao: c.nome, final: c.final_principal, limite: c.limite, usado: c.consumido, perc: c.perc }));
+  return r;
 }

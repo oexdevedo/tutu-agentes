@@ -12,7 +12,9 @@ export function conferir(resposta: string, recibos: Recibo[], entrada: string): 
   const escritas = recibos.filter(r => !r.leitura);
   const fez = escritas.some(r => r.ok && (r.efeito > 0 || r.duplicado));
   let final = resposta;
-  if (AFIRMA.test(resposta) && !fez) {
+  // pergunta "anotou essa?": "sim, anotei" confirma o que JÁ foi feito, não é promessa nova
+  const perguntouSeAnotou = /(anot(ou|aste|ado|ada)|registr(ou|aste|ado|ada)|lan[çc](ou|aste|ado|ada)|t[áa] (anotad|registrad|lan[çc]ad))[^?]*\?/i.test(entrada);
+  if (AFIRMA.test(resposta) && !fez && !perguntouSeAnotou) {
     regras.push(escritas.length ? "prometeu_mas_falhou" : "prometeu_sem_acao");
     final = /^[\s!.]*((valeu|vlw|obrigad[oa]|grato|grata)\b|\p{Extended_Pictographic})/iu.test(entrada) ? "Fechado! 💛" : HONESTA;
   }

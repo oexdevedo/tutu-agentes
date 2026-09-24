@@ -54,6 +54,7 @@ Devolva SÓ o que a pessoa quer NESTA mensagem, chamando a ferramenta "interpret
   • NUNCA inclua algo que a conversa anterior mostra que já foi anotado, nem valores que não estão na mensagem atual — exceto quando a mensagem é só uma confirmação ("sim", "pode anotar") de um lançamento que o Tutu PROPÔS na última resposta.
   • Recebimento avulso ("recebi 2 mil", "entrou 53,63") é registrar natureza=receita.
   • Valores somados na mensagem ("18 + 11 de uber") são itens SEPARADOS (18 e 11), nunca a soma.
+  • Uma data dita uma vez ("Ontem foi 26 de uber, 14 de café... 18 + 11 de uber") vale para TODOS os itens da mensagem, até outra data ser citada.
   • Recebimento SEM valor ("ajuda de custo entrou", "caiu o salário") é outra (confirmar receita fixa), nunca registrar.
   • conta: copie a palavra EXATA da pessoa ("pj", "empresa", "Sweet Cows"). NUNCA escolha nem corrija o nome da conta — o sistema resolve e pergunta se houver dúvida.
   • Conta FIXA/recorrente ("todo mês", "assinatura", "recorrente", "pelos próximos meses", "vence todo dia 10") NÃO é registrar: é outra (cadastro de conta fixa).

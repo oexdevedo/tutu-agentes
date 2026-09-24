@@ -41,6 +41,13 @@ describe("guardrail: só afirma o que o recibo confirma", () => {
   it("tira vazamento de chamada de ferramenta", () => expect(conferir('Calling registrar with input {"a":1}\nPronto!', [], "x").resposta).toBe("Pronto!"));
 });
 
+describe("formato WhatsApp", () => {
+  it("**negrito** vira *negrito* sem contar como substituição", () => {
+    const g = conferir("Você tem **5 cartões estourados** e soma **R$ 4.821,99**", [], "como estão meus cartões?");
+    expect(g.resposta).toBe("Você tem *5 cartões estourados* e soma *R$ 4.821,99*"); expect(g.acao).toBe("nenhuma");
+  });
+});
+
 describe("validação do que o modelo devolve", () => {
   it("registro sem valor vira 'outra'", () => {
     expect(validar({ intencoes: [{ tipo: "registrar", natureza: "despesa", descricao: "x" } as never] }).intencoes[0].tipo).toBe("outra");

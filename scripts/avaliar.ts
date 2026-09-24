@@ -25,7 +25,7 @@ function chamadas(t: Turno): Chamada[] {
       const r = t.recibos.find(x => (x.acao === "registrar" || x.acao === "registrar_cartao") && x.itens?.[0]?.valor === i.valor && !(x as any)._usado);
       if (r) (r as any)._usado = true;
       const efetivo = !!r && r.ok && r.efeito > 0;
-      if (efetivo) out.push({ tool: "registrar_lancamento", escrita: true, input: { tipo: i.natureza, valor: i.valor, forma_pagamento: i.forma_pagamento ?? "", conta: i.conta ?? r?.itens?.[0]?.conta ?? "", data_lancamento: i.data ?? hoje(), origem_dinheiro: i.origem_dinheiro ?? "", descricao: i.descricao } });
+      out.push({ tool: "registrar_lancamento", escrita: efetivo, input: { tipo: i.natureza, valor: i.valor, forma_pagamento: i.forma_pagamento ?? "", conta: i.conta ?? r?.itens?.[0]?.conta ?? "", data_lancamento: i.data ?? hoje(), origem_dinheiro: i.origem_dinheiro ?? "", descricao: i.descricao } });
     } else if (i.tipo === "consultar_saldo") out.push({ tool: "consultar_saldo", escrita: false, input: { conta: i.conta ?? "" } });
     else if (i.tipo === "consultar_mes") out.push({ tool: i.o_que === "receitas" ? "receitas" : "despesas_fixas", escrita: false, input: { acao: i.o_que === "fixas" ? "listar_recorrentes" : "listar", mes: i.mes ?? "" } });
     else if (i.tipo === "outra") out.push({ tool: "outra", escrita: false, input: { descricao: i.descricao } });
@@ -56,7 +56,8 @@ function conferir(esp: Esp, cs: Chamada[], saida: string): string[] {
   return f;
 }
 /** O caso pede alguma ação que o Core ainda não executa? */
-function foraDoEscopo(esp: Esp): boolean {
+function foraDoEscopo(esp: Esp, grupo = ""): boolean {
+  if (["excluir", "editar"].includes(grupo)) return true;   // apagar/editar ainda é do agente antigo
   const specs = [...(esp.chamar ?? []), ...((esp.alternativas ?? []).flatMap((a: Esp) => a.chamar ?? []))];
   if (!specs.length) return false;
   const podeCore = (s: any) => DO_CORE.has(s.tool) && !(["despesas_fixas", "receitas"].includes(s.tool) && s.campos?.acao && !LEITURA.test(s.campos.acao)) && !(s.tool === "despesas_fixas" && s.campos?.valor);
@@ -66,12 +67,13 @@ function foraDoEscopo(esp: Esp): boolean {
 const args = process.argv.slice(2);
 const rep = Number(args[args.indexOf("--rep") + 1]) || 1;
 const rotulo = args.includes("--rotulo") ? args[args.indexOf("--rotulo") + 1] : "";
-const casos = await ler<any[]>("tutu_avaliacao_casos?ativo=eq.true&select=*&order=grupo,id");
+const filtro = args.includes("--caso") ? new Set(args[args.indexOf("--caso") + 1].split(",")) : null;
+const casos = (await ler<any[]>("tutu_avaliacao_casos?ativo=eq.true&select=*&order=grupo,id")).filter(c => !filtro || filtro.has(c.id));
 const res: any[] = [];
 const fila = casos.flatMap(c => Array.from({ length: rep }, (_, r) => ({ c, r })));
 async function trabalhador() {
   for (let it = fila.shift(); it; it = fila.shift()) {
-    const { c, r } = it; const fora = foraDoEscopo(c.esperado);
+    const { c, r } = it; const fora = foraDoEscopo(c.esperado, c.grupo);
     try {
       const t = await processarTurno({ phone: c.entrada.phone ?? "0", mensagem: c.entrada.mensagem, historico: c.entrada.historico ?? [], gravarSombra: false, contextoFixo: c.entrada });
       const cs = chamadas(t);

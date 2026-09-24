@@ -6,7 +6,9 @@ import { consultarMes, consultarSaldo } from "./consultas.js";
 export async function executar(c: Compreensao, ctx: Contexto, mensagem: string, turnoId: string): Promise<Recibo[]> {
   const feitos = new Set<string>();
   const recibos: Recibo[] = [];
-  for (const i of c.intencoes) {
+  for (const i0 of c.intencoes) {
+    // sem conta citada, vale a conta fixa (normalmente vem do banco; na avaliação, do caso)
+    const i = ("conta" in i0 && !i0.conta && ctx.conta_fixa_nome) ? { ...i0, conta: ctx.conta_fixa_nome } : i0;
     try {
       if (i.tipo === "registrar") recibos.push(await registrar(i, { phone: ctx.phone, mensagem, hoje: ctx.hoje, turnoId }, feitos));
       else if (i.tipo === "consultar_saldo") recibos.push(await consultarSaldo(i, ctx.phone, ctx.hoje));

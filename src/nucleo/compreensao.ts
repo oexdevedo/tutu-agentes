@@ -25,7 +25,7 @@ const INTERPRETAR: Tool = {
             data: { type: "string", description: "AAAA-MM-DD" },
             forma_pagamento: { type: "string", enum: ["credito", "debito", "pix", "dinheiro"] },
             nome_cartao: { type: "string" },
-            conta: { type: "string", description: "conta citada NESTA mensagem (ex.: 'empresa', 'Casita'); vazio se não citou" },
+            conta: { type: "string", description: "a palavra EXATA que a pessoa usou para a conta NESTA mensagem ('pj', 'empresa', 'Sweet Cows'); nunca troque por um nome da lista; vazio se não citou" },
             pago: { type: "boolean", description: "false quando é conta A PAGAR que ainda não foi paga" },
             origem_dinheiro: { type: "string", enum: ["reserva"] },
             o_que: { type: "string", enum: ["receitas", "despesas", "fixas"] },
@@ -53,7 +53,11 @@ Devolva SÓ o que a pessoa quer NESTA mensagem, chamando a ferramenta "interpret
   • "usei a reserva/poupança/dinheiro guardado" → origem_dinheiro=reserva.
   • NUNCA inclua algo que a conversa anterior mostra que já foi anotado, nem valores que não estão na mensagem atual — exceto quando a mensagem é só uma confirmação ("sim", "pode anotar") de um lançamento que o Tutu PROPÔS na última resposta.
   • Recebimento avulso ("recebi 2 mil", "entrou 53,63") é registrar natureza=receita.
-- consultar_saldo: saldo, quanto posso gastar, quanto gastei/recebi hoje.
+  • Valores somados na mensagem ("18 + 11 de uber") são itens SEPARADOS (18 e 11), nunca a soma.
+  • Recebimento SEM valor ("ajuda de custo entrou", "caiu o salário") é outra (confirmar receita fixa), nunca registrar.
+  • conta: copie a palavra EXATA da pessoa ("pj", "empresa", "Sweet Cows"). NUNCA escolha nem corrija o nome da conta — o sistema resolve e pergunta se houver dúvida.
+  • Conta FIXA/recorrente ("todo mês", "assinatura", "recorrente", "pelos próximos meses", "vence todo dia 10") NÃO é registrar: é outra (cadastro de conta fixa).
+- consultar_saldo: saldo, quanto posso gastar, quanto gastei/recebi hoje, e perguntas sobre o limite do dia ("por que tenho X pra gastar hoje?").
 - consultar_mes: listar receitas/despesas/fixas de um mês (mes=AAAA-MM se citou).
 - agradecimento: só 👍/obrigado/valeu, sem pedido.
 - conversa: desabafo, dúvida geral, papo — nada a executar.

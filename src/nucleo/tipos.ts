@@ -45,6 +45,7 @@ export interface Contexto {
   nome: string;
   contas_texto: string;      // "Pessoal (padrão) · Sweet Chaos (PJ)..."
   conta_fixa_tipo?: string | null;
+  conta_fixa_nome?: string | null;   // avaliação: força a conta fixa do caso
   historico: { papel: "pessoa" | "tutu"; texto: string }[];
   hoje: string;              // AAAA-MM-DD (São Paulo)
 }

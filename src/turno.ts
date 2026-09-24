@@ -11,13 +11,14 @@ import type { Turno } from "./nucleo/tipos.js";
 /** Um turno completo: entender → decidir/executar (recibos) → falar → conferir. */
 export async function processarTurno(entrada: { phone: string; mensagem: string; execucao_id?: string;
   historico?: Turno["contexto"]["historico"]; gravarSombra?: boolean;
-  contextoFixo?: { nome?: string; contas_texto?: string } }): Promise<Turno> {
+  contextoFixo?: { nome?: string; contas_texto?: string; conta_fixa?: string; conta_fixa_tipo?: string } }): Promise<Turno> {
   const t0 = Date.now();
   const turnoId = entrada.execucao_id || randomUUID();
   const contexto = await carregarContexto(entrada.phone);
   if (entrada.historico) contexto.historico = entrada.historico;   // avaliação: histórico do caso real
   if (entrada.contextoFixo?.nome) contexto.nome = entrada.contextoFixo.nome;
   if (entrada.contextoFixo?.contas_texto) contexto.contas_texto = entrada.contextoFixo.contas_texto;
+  if (entrada.contextoFixo?.conta_fixa) { contexto.conta_fixa_nome = entrada.contextoFixo.conta_fixa; contexto.conta_fixa_tipo = entrada.contextoFixo.conta_fixa_tipo ?? null; }
   const { compreensao, tokens: t1 } = await compreender(entrada.mensagem, contexto);
   const recibos = await executar(compreensao, contexto, entrada.mensagem, turnoId);
   const { texto, tokens: t2 } = await falar(entrada.mensagem, contexto, compreensao, recibos);
